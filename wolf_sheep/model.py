@@ -9,13 +9,18 @@ Replication of the model found in NetLogo:
     Northwestern University, Evanston, IL.
 """
 
+import os
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 from mesa.time import RandomActivationByType
+import pandas as pd 
+import datetime
 
 from wolf_sheep.agents import Sheep, Wolf, GrassPatch
+# from agents import Sheep, Wolf, GrassPatch
 
+from mesa.batchrunner import batch_run
 
 class WolfSheep(Model):
     """
@@ -55,6 +60,7 @@ class WolfSheep(Model):
         grass=False,
         grass_regrowth_time=30,
         sheep_gain_from_food=4,
+	maximum_time_without_eat = 100
     ):
         """
         Create a new Wolf-Sheep model with the given parameters.
@@ -82,6 +88,7 @@ class WolfSheep(Model):
         self.grass = grass
         self.grass_regrowth_time = grass_regrowth_time
         self.sheep_gain_from_food = sheep_gain_from_food
+        self.maximum_time_without_eat = maximum_time_without_eat
 
         self.schedule = RandomActivationByType(self)
         self.grid = MultiGrid(self.width, self.height, torus=True)
@@ -106,7 +113,7 @@ class WolfSheep(Model):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
             energy = self.random.randrange(2 * self.wolf_gain_from_food)
-            wolf = Wolf(self.next_id(), (x, y), self, True, energy)
+            wolf = Wolf(self.next_id(), (x, y), self, True, energy, maximum_time_without_eat)
             self.grid.place_agent(wolf, (x, y))
             self.schedule.add(wolf)
 
@@ -154,3 +161,31 @@ class WolfSheep(Model):
             print("")
             print("Final number wolves: ", self.schedule.get_type_count(Wolf))
             print("Final number sheep: ", self.schedule.get_type_count(Sheep))
+
+def faz_o_batch():
+    params = {
+        "width": 20,
+        "height": 20,
+        "sheep_reproduce":0.04,
+        "wolf_reproduce":0.05,
+        "wolf_gain_from_food":20,
+        "grass":True,
+        "grass_regrowth_time":30,
+        "sheep_gain_from_food":4,
+        "initial_sheep": [50, 100, 150],
+        "initial_wolves": [50, 100, 150],
+        "maximum_time_without_eat": 100,
+    }
+
+    resultado = batch_run(
+        WolfSheep,
+        params,
+        iterations=10,
+        data_collection_period=10,
+        max_steps=10
+    )
+    
+    resultados_dataframe = pd.DataFrame(resultado)
+    tempo = str(datetime.datetime.now())
+
+    resultados_dataframe.to_csv(tempo + " - wolf without eating.csv")

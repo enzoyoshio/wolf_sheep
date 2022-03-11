@@ -1,6 +1,6 @@
 from mesa import Agent
 from wolf_sheep.random_walk import RandomWalker
-
+# from random_walk import RandomWalker
 
 class Sheep(RandomWalker):
     """
@@ -21,7 +21,7 @@ class Sheep(RandomWalker):
         """
         self.random_move()
         living = True
-
+ 
         if self.model.grass:
             # Reduce energy
             self.energy -= 1
@@ -50,26 +50,42 @@ class Sheep(RandomWalker):
             self.model.schedule.add(lamb)
 
 
+def avg(lista):
+	ans = 0
+	for el in lista:
+		ans += el
+	return ans/len(lista)
+
 class Wolf(RandomWalker):
     """
     A wolf that walks around, reproduces (asexually) and eats sheep.
     """
 
     energy = None
+    time_without_eating = []
+    mean_time_without_eating = 0
+    counter_time_not_eating = 0
+    maximum_time_without_eat = 100
 
-    def __init__(self, unique_id, pos, model, moore, energy=None):
+    def __init__(self, unique_id, pos, model, moore, energy=None, maximum_time_without_eat=100):
         super().__init__(unique_id, pos, model, moore=moore)
         self.energy = energy
+        self.maximum_time_without_eat = maximum_time_without_eat
 
     def step(self):
         self.random_move()
         self.energy -= 1
+        self.counter_time_not_eating += 1
 
         # If there are sheep present, eat one
         x, y = self.pos
         this_cell = self.model.grid.get_cell_list_contents([self.pos])
         sheep = [obj for obj in this_cell if isinstance(obj, Sheep)]
         if len(sheep) > 0:
+            self.time_without_eating.append(self.counter_time_not_eating)
+            self.counter_time_not_eating = 0
+            self.mean_time_without_eating = avg(self.time_without_eating)
+
             sheep_to_eat = self.random.choice(sheep)
             self.energy += self.model.wolf_gain_from_food
 
@@ -78,7 +94,7 @@ class Wolf(RandomWalker):
             self.model.schedule.remove(sheep_to_eat)
 
         # Death or reproduction
-        if self.energy < 0:
+        if self.energy < 0 or self.counter_time_not_eating > self.maximum_time_without_eat:
             self.model.grid._remove_agent(self.pos, self)
             self.model.schedule.remove(self)
         else:

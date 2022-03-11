@@ -5,6 +5,9 @@ from mesa.visualization.UserParam import UserSettableParameter
 from wolf_sheep.agents import Wolf, Sheep, GrassPatch
 from wolf_sheep.model import WolfSheep
 
+# from agents import Wolf, Sheep, GrassPatch
+# from model import WolfSheep
+
 
 def wolf_sheep_portrayal(agent):
     if agent is None:
@@ -16,7 +19,7 @@ def wolf_sheep_portrayal(agent):
         portrayal["Shape"] = "wolf_sheep/resources/sheep.png"
         # https://icons8.com/web-app/433/sheep
         portrayal["scale"] = 0.9
-        portrayal["Layer"] = 1
+        portrayal["Layer"] = 1 
 
     elif type(agent) is Wolf:
         portrayal["Shape"] = "wolf_sheep/resources/wolf.png"
@@ -73,6 +76,9 @@ model_params = {
     ),
     "sheep_gain_from_food": UserSettableParameter(
         "slider", "Sheep Gain From Food", 4, 1, 10
+    ),
+    "maximum_time_without_eat": UserSettableParameter(
+        "slider", "Maximum time wolf can be without eating", 100, 1, 200, 1
     ),
 }
 
