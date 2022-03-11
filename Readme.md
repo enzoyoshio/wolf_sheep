@@ -6,7 +6,6 @@ Use o comando no terminal:
 
 ```
     $ pip install -e git+https://github.com/projectmesa/mesa#egg=mesa
-
 ```
 
 Depois de baixar, o modelo visual pode ser visto ao realizar o comando:
